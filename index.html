@@ -6,77 +6,318 @@
 <title>Notes on a sovereign, EU-hosted customer support AI</title>
 <meta name="description" content="Engineering notes on building an EU-hosted, self-hosted customer support AI for e-commerce: data residency, acting beyond answering, escalation, and what to measure.">
 <link rel="canonical" href="https://finalburner.github.io/eu-support-ai-notes/">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%233E63DD'/%3E%3Cpath d='M9 22V10h6.2a3.4 3.4 0 0 1 .9 6.7 3.6 3.6 0 0 1-1.1 7H9z' fill='%23fff'/%3E%3C/svg%3E">
 <style>
   :root{
-    --bg:#fbfaf7; --fg:#1a1c22; --muted:#565b66; --rule:#e6e2d8;
-    --accent:#1e40af; --accent-soft:#eaeefb; --card:#ffffff;
-    --maxw:44rem;
+    --bg:#fbf7f0; --surface:#fffdf9; --surface-2:#f7f0e4;
+    --fg:#1c1a2e; --muted:#6b6680; --faint:#9a94a8;
+    --line:#e7dece; --line-strong:#d8ccb6;
+    --accent:#3e63dd; --accent-deep:#2a46b0; --accent-soft:#dce3fb;
+    --flag:#e34a2c; --flag-soft:#ffe1d6;
+    --mint:#3f9e86; --mint-soft:#d2f1e8;
+    --maxw:44rem; --figw:52rem;
+    --sans:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    --mono:ui-monospace,SFMono-Regular,"SF Mono",Menlo,Consolas,monospace;
   }
-  @media (prefers-color-scheme: dark){
+  @media (prefers-color-scheme:dark){
     :root{
-      --bg:#101216; --fg:#e9ebf0; --muted:#9aa1ad; --rule:#242832;
-      --accent:#8fb0ff; --accent-soft:#182238; --card:#151821;
+      --bg:#131220; --surface:#1b1930; --surface-2:#211f38;
+      --fg:#ecebf6; --muted:#a49eba; --faint:#726c88;
+      --line:#2b2844; --line-strong:#3b3758;
+      --accent:#8aa2ff; --accent-deep:#a9baff; --accent-soft:#232a4d;
+      --flag:#ff8a6e; --flag-soft:#3a2620;
+      --mint:#5fd0b4; --mint-soft:#20322d;
     }
   }
   *{box-sizing:border-box}
   html{-webkit-text-size-adjust:100%}
   body{
     margin:0; background:var(--bg); color:var(--fg);
-    font:400 1.02rem/1.65 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
-    padding:2.4rem 1.25rem 4rem;
+    font:400 1.02rem/1.68 var(--sans);
+    padding:2.6rem 1.25rem 4rem;
+    -webkit-font-smoothing:antialiased;
   }
   main{max-width:var(--maxw); margin:0 auto}
   .eyebrow{
-    font-size:.78rem; letter-spacing:.09em; text-transform:uppercase;
-    color:var(--accent); font-weight:600; margin:0 0 .6rem;
+    font-family:var(--mono); font-size:.72rem; letter-spacing:.14em;
+    text-transform:uppercase; color:var(--accent); font-weight:500; margin:0 0 .9rem;
   }
   h1{
-    font-size:clamp(1.7rem,4.4vw,2.35rem); line-height:1.15;
-    letter-spacing:-.01em; text-wrap:balance; margin:.1rem 0 .5rem;
+    font-size:clamp(1.8rem,4.6vw,2.5rem); line-height:1.12; font-weight:700;
+    letter-spacing:-.02em; text-wrap:balance; margin:.1rem 0 .6rem;
   }
-  .lede{color:var(--muted); font-size:1.1rem; margin:0 0 2rem; text-wrap:pretty}
+  .lede{color:var(--muted); font-size:1.14rem; line-height:1.55; margin:0 0 1.4rem; text-wrap:pretty}
+  .topics{
+    display:flex; flex-wrap:wrap; gap:.4rem .55rem; align-items:center;
+    font-family:var(--mono); font-size:.7rem; letter-spacing:.05em; text-transform:uppercase;
+    color:var(--faint); margin:0 0 .5rem; padding-bottom:.2rem;
+  }
+  .topics span{white-space:nowrap}
+  .topics span::before{content:"→ "; color:var(--accent)}
   h2{
-    font-size:1.2rem; letter-spacing:-.005em; margin:2.2rem 0 .5rem;
-    padding-top:1.5rem; border-top:1px solid var(--rule);
+    font-size:1.28rem; font-weight:700; letter-spacing:-.01em; margin:2.6rem 0 .5rem;
+    padding-top:1.6rem; border-top:1px solid var(--line);
   }
-  p{margin:.7rem 0}
+  p{margin:.75rem 0}
   a{color:var(--accent); text-underline-offset:2px; text-decoration-thickness:1px}
   a:hover{text-decoration-thickness:2px}
-  .card{
-    background:var(--card); border:1px solid var(--rule); border-radius:12px;
-    padding:1.1rem 1.25rem; margin:2rem 0 0;
+  ul.clean{list-style:none; margin:1rem 0; padding:0; display:grid; gap:.55rem}
+  ul.clean li{position:relative; padding-left:1.5rem; color:var(--fg)}
+  ul.clean li::before{
+    content:""; position:absolute; left:.15rem; top:.62em;
+    width:.5rem; height:.5rem; border-radius:2px; background:var(--accent);
   }
-  .card p{margin:.3rem 0; font-size:.98rem}
-  footer{margin-top:2.6rem; padding-top:1.2rem; border-top:1px solid var(--rule); color:var(--muted); font-size:.9rem}
+  ul.clean li b{font-weight:600}
+  /* figures */
+  figure{margin:1.9rem 0 .4rem; width:100%}
+  .fig-wide{max-width:var(--figw); margin-inline:calc((var(--maxw) - var(--figw)) / 2)}
+  @media (max-width:56rem){ .fig-wide{max-width:100%; margin-inline:0} }
+  .fig-frame{
+    background:var(--surface); border:1px solid var(--line); border-radius:16px;
+    padding:1.1rem 1rem .6rem; overflow-x:auto;
+  }
+  figure svg{display:block; width:100%; height:auto; min-width:30rem}
+  figcaption{
+    font-family:var(--mono); font-size:.72rem; line-height:1.5; color:var(--muted);
+    margin:.7rem .2rem 0; letter-spacing:.01em;
+  }
+  figcaption b{color:var(--fg); font-weight:600}
+  /* table */
+  .tbl-wrap{overflow-x:auto; margin:1.4rem 0 .5rem; border:1px solid var(--line); border-radius:14px}
+  table{border-collapse:collapse; width:100%; min-width:34rem; font-size:.95rem}
+  thead th{
+    font-family:var(--mono); font-size:.68rem; letter-spacing:.06em; text-transform:uppercase;
+    text-align:left; color:var(--muted); font-weight:500;
+    padding:.75rem .9rem; background:var(--surface-2); border-bottom:1px solid var(--line-strong);
+  }
+  thead th:first-child{color:var(--faint)}
+  tbody th{
+    text-align:left; font-weight:600; color:var(--fg); padding:.7rem .9rem;
+    vertical-align:top; width:32%; background:var(--surface-2);
+  }
+  tbody td{padding:.7rem .9rem; vertical-align:top; color:var(--muted); border-left:1px solid var(--line)}
+  tbody tr+tr th, tbody tr+tr td{border-top:1px solid var(--line)}
+  td.sov{color:var(--fg)}
+  td.sov::before{content:"● "; color:var(--mint); font-size:.8em}
+  td.saas::before{content:"● "; color:var(--flag); font-size:.8em}
+  /* card */
+  .card{
+    background:var(--surface); border:1px solid var(--line); border-radius:16px;
+    padding:1.15rem 1.3rem; margin:2.6rem 0 0; position:relative;
+  }
+  .card::before{
+    content:""; position:absolute; left:0; top:1.15rem; bottom:1.15rem; width:3px;
+    border-radius:3px; background:var(--accent);
+  }
+  .card p{margin:.3rem 0 .3rem .4rem; font-size:.98rem; color:var(--muted)}
+  .card b{color:var(--fg)}
+  footer{
+    margin-top:2.8rem; padding-top:1.2rem; border-top:1px solid var(--line);
+    color:var(--faint); font-size:.85rem; font-family:var(--mono); line-height:1.6;
+  }
+  /* shared svg classes */
+  .n-box{fill:var(--surface); stroke:var(--line-strong); stroke-width:1.5}
+  .n-box.eu{fill:var(--accent-soft)}
+  .n-box.out{fill:var(--flag-soft)}
+  .n-t{fill:var(--fg); font:600 13px var(--sans)}
+  .n-s{fill:var(--muted); font:400 11px var(--mono)}
+  .zone{fill:none; stroke:var(--accent); stroke-width:1.5; stroke-dasharray:5 4; rx:14}
+  .zone-fill{fill:var(--accent); opacity:.06}
+  .zone-tag{fill:var(--accent); font:600 10px var(--mono); letter-spacing:.08em}
+  .ln{fill:none; stroke:var(--accent); stroke-width:2}
+  .ln.flag{stroke:var(--flag)}
+  .ln.mint{stroke:var(--mint)}
+  .lbl{fill:var(--muted); font:400 10.5px var(--mono)}
+  .lbl.flag{fill:var(--flag)}
+  .head{fill:var(--faint); font:500 10px var(--mono); letter-spacing:.1em; text-transform:uppercase}
+  .border-line{stroke:var(--flag); stroke-width:1.5; stroke-dasharray:3 4; opacity:.7}
+  .mk{fill:var(--accent)} .mk.flag{fill:var(--flag)} .mk.mint{fill:var(--mint)}
 </style>
 </head>
 <body>
 <main>
   <p class="eyebrow">Engineering notes</p>
   <h1>Notes on a sovereign, EU-hosted customer support AI</h1>
-  <p class="lede">Most e-commerce support automation sends customer data through models hosted outside the EU. For a European merchant, that single fact drives a different set of architecture decisions. These notes collect what changes when data residency is a hard requirement rather than a preference.</p>
+  <p class="lede">Most e-commerce support automation sends customer data through models hosted outside the EU. For a European merchant, that single fact reshapes the architecture. These notes collect what changes when data residency is a hard requirement, not a preference.</p>
+  <div class="topics">
+    <span>Data residency</span><span>Acting, not just answering</span><span>Escalation</span><span>Measurement</span>
+  </div>
+
+  <figure class="fig-wide">
+    <div class="fig-frame">
+      <svg viewBox="0 0 680 372" role="img" aria-label="Diagram comparing where customer data travels in a non-EU SaaS stack versus a sovereign EU-hosted setup.">
+        <defs>
+          <marker id="ah" markerWidth="9" markerHeight="9" refX="6.5" refY="3" orient="auto"><path d="M0,0 L6.5,3 L0,6 Z" class="mk"/></marker>
+          <marker id="ahf" markerWidth="9" markerHeight="9" refX="6.5" refY="3" orient="auto"><path d="M0,0 L6.5,3 L0,6 Z" class="mk flag"/></marker>
+          <marker id="ahm" markerWidth="9" markerHeight="9" refX="6.5" refY="3" orient="auto"><path d="M0,0 L6.5,3 L0,6 Z" class="mk mint"/></marker>
+        </defs>
+
+        <!-- Lane A: managed SaaS -->
+        <text x="10" y="26" class="head">Managed SaaS · non-EU</text>
+        <rect class="zone-fill" x="8" y="40" width="300" height="96" rx="14"/>
+        <rect class="zone" x="8" y="40" width="300" height="96" rx="14"/>
+        <text x="20" y="58" class="zone-tag">EU</text>
+
+        <g>
+          <rect class="n-box eu" x="24" y="72" width="112" height="48" rx="11"/>
+          <text x="80" y="93" text-anchor="middle" class="n-t">Shopper</text>
+          <text x="80" y="109" text-anchor="middle" class="n-s">in the EU</text>
+        </g>
+        <g>
+          <rect class="n-box eu" x="180" y="72" width="112" height="48" rx="11"/>
+          <text x="236" y="93" text-anchor="middle" class="n-t">Merchant</text>
+          <text x="236" y="109" text-anchor="middle" class="n-s">store · EU</text>
+        </g>
+        <g>
+          <rect class="n-box out" x="520" y="72" width="140" height="48" rx="11"/>
+          <text x="590" y="93" text-anchor="middle" class="n-t">Model host</text>
+          <text x="590" y="109" text-anchor="middle" class="n-s">outside EU</text>
+        </g>
+
+        <line class="border-line" x1="410" y1="34" x2="410" y2="150"/>
+        <text x="410" y="150" text-anchor="middle" class="lbl flag">EU border</text>
+
+        <path class="ln" d="M136,96 L176,96" marker-end="url(#ah)"/>
+        <path class="ln flag" d="M292,96 L516,96" marker-end="url(#ahf)"/>
+        <text x="404" y="86" text-anchor="middle" class="lbl flag">cross-border transfer</text>
+
+        <!-- Lane B: sovereign -->
+        <text x="10" y="212" class="head">Sovereign · EU-hosted</text>
+        <rect class="zone-fill" x="8" y="226" width="652" height="96" rx="14"/>
+        <rect class="zone" x="8" y="226" width="652" height="96" rx="14"/>
+        <text x="20" y="244" class="zone-tag">EU · FRANCE</text>
+
+        <g>
+          <rect class="n-box eu" x="24" y="258" width="112" height="48" rx="11"/>
+          <text x="80" y="279" text-anchor="middle" class="n-t">Shopper</text>
+          <text x="80" y="295" text-anchor="middle" class="n-s">in the EU</text>
+        </g>
+        <g>
+          <rect class="n-box eu" x="188" y="258" width="112" height="48" rx="11"/>
+          <text x="244" y="279" text-anchor="middle" class="n-t">Merchant</text>
+          <text x="244" y="295" text-anchor="middle" class="n-s">store · EU</text>
+        </g>
+        <g>
+          <rect class="n-box eu" x="352" y="258" width="150" height="48" rx="11"/>
+          <text x="427" y="279" text-anchor="middle" class="n-t">Inference · FR</text>
+          <text x="427" y="295" text-anchor="middle" class="n-s">EU model (Mistral)</text>
+        </g>
+
+        <path class="ln" d="M136,282 L184,282" marker-end="url(#ah)"/>
+        <path class="ln" d="M300,282 L348,282" marker-end="url(#ah)"/>
+        <path class="ln mint" d="M540,282 C600,282 600,282 640,282 M506,282 L536,282" marker-end="url(#ahm)"/>
+        <text x="590" y="278" text-anchor="middle" class="lbl">stays inside</text>
+        <text x="590" y="296" text-anchor="middle" class="lbl">the EU</text>
+      </svg>
+    </div>
+    <figcaption><b>Where customer data travels.</b> A managed non-EU stack pushes data across the border on every request. A sovereign design keeps the shopper, the store and the inference on the same side.</figcaption>
+  </figure>
 
   <h2>Residency first</h2>
-  <p>When the inference runs inside the EU and the data never leaves it, GDPR and the AI Act stop being a compliance afterthought and become the shape of the system. Hosting in France, on European infrastructure, removes the cross-border transfer question entirely. The model provider matters here too. An EU model such as Mistral keeps both the weights and the inference on the same side of the border, so there is no vendor round trip to reason about.</p>
+  <p>When inference runs inside the EU and the data never leaves it, GDPR and the AI Act stop being a compliance afterthought and start shaping the system. Hosting in France, on European infrastructure, removes the cross-border transfer question. The model choice matters here too: an EU model such as Mistral keeps the weights and the inference on the same side of the border, so there is no vendor round trip to reason about.</p>
+  <ul class="clean">
+    <li><b>No cross-border transfer</b> agreements to negotiate and keep current.</li>
+    <li><b>No third-country vendor</b> pulled into scope for every audit.</li>
+    <li><b>Data stays</b> under the jurisdiction that already regulates it.</li>
+  </ul>
 
   <h2>Answering is the easy half</h2>
-  <p>A support assistant that only answers questions is a search box with better manners. The harder and more useful half is acting: issuing a refund, cancelling an order, pulling live order status, and handing off to a human when confidence drops. That means real integrations with the store and the help desk, not a chat widget bolted on top. The value shows up when the assistant closes the loop on a request instead of describing how the customer could close it themselves.</p>
+  <p>A support assistant that only answers questions is a search box with better manners. The useful half is acting: issuing a refund, cancelling an order, pulling live order status, and handing off to a human when confidence drops. That needs real integrations with the store and the help desk, not a chat widget bolted on top. The value shows up when the assistant closes the loop on a request instead of describing how the shopper could close it themselves.</p>
+  <ul class="clean">
+    <li><b>Refund or partial refund</b> on a verified order.</li>
+    <li><b>Cancel or change an order</b> before it ships.</li>
+    <li><b>Live order and shipping status</b>, pulled in real time.</li>
+    <li><b>Clean handoff to a human</b>, with the full context attached.</li>
+  </ul>
+
+  <figure class="fig-wide">
+    <div class="fig-frame">
+      <svg viewBox="0 0 680 300" role="img" aria-label="Decision diagram: an incoming request runs a confidence and policy check, then the assistant answers, acts, or escalates to a human, with every decision logged.">
+        <defs>
+          <marker id="d-ah" markerWidth="9" markerHeight="9" refX="6.5" refY="3" orient="auto"><path d="M0,0 L6.5,3 L0,6 Z" class="mk"/></marker>
+          <marker id="d-ahm" markerWidth="9" markerHeight="9" refX="6.5" refY="3" orient="auto"><path d="M0,0 L6.5,3 L0,6 Z" class="mk mint"/></marker>
+          <marker id="d-ahf" markerWidth="9" markerHeight="9" refX="6.5" refY="3" orient="auto"><path d="M0,0 L6.5,3 L0,6 Z" class="mk flag"/></marker>
+        </defs>
+
+        <g>
+          <rect class="n-box" x="14" y="112" width="132" height="52" rx="11"/>
+          <text x="80" y="134" text-anchor="middle" class="n-t">Incoming</text>
+          <text x="80" y="151" text-anchor="middle" class="n-s">request</text>
+        </g>
+        <g>
+          <rect class="n-box eu" x="212" y="106" width="150" height="64" rx="11"/>
+          <text x="287" y="132" text-anchor="middle" class="n-t">Confidence</text>
+          <text x="287" y="150" text-anchor="middle" class="n-s">+ policy check</text>
+        </g>
+
+        <path class="ln" d="M146,138 L208,138" marker-end="url(#d-ah)"/>
+
+        <!-- three outcomes -->
+        <g>
+          <rect class="n-box" x="470" y="24" width="196" height="50" rx="11"/>
+          <text x="490" y="45" class="n-t">Answer</text>
+          <text x="490" y="62" class="n-s">high confidence · read-only</text>
+        </g>
+        <g>
+          <rect class="n-box" x="470" y="113" width="196" height="50" rx="11"/>
+          <text x="490" y="134" class="n-t">Act</text>
+          <text x="490" y="151" class="n-s">refund · cancel · status</text>
+        </g>
+        <g>
+          <rect class="n-box out" x="470" y="202" width="196" height="50" rx="11"/>
+          <text x="490" y="223" class="n-t">Escalate to a human</text>
+          <text x="490" y="240" class="n-s">low confidence · touches money</text>
+        </g>
+
+        <path class="ln" d="M362,126 C420,110 420,55 466,50" marker-end="url(#d-ah)"/>
+        <path class="ln mint" d="M362,138 L466,138" marker-end="url(#d-ahm)"/>
+        <path class="ln flag" d="M362,150 C420,166 420,222 466,227" marker-end="url(#d-ahf)"/>
+
+        <!-- audit bar -->
+        <rect x="14" y="200" width="348" height="54" rx="11" class="n-box" style="fill:var(--surface-2)"/>
+        <text x="32" y="222" class="n-s" style="fill:var(--fg)">Every decision logged</text>
+        <text x="32" y="240" class="lbl">timestamp · confidence · action · outcome</text>
+      </svg>
+    </div>
+    <figcaption><b>The decision boundary.</b> The assistant answers or acts when it is sure and allowed. Low confidence, or anything that moves money, routes to a human. Every branch is logged.</figcaption>
+  </figure>
 
   <h2>Knowing when to stop</h2>
-  <p>The difference between a helpful assistant and a liability is the escalation rule. A sovereign setup should log every decision, expose a confidence signal, and hand the conversation to a human the moment it is unsure or the request touches money it should not move on its own. Auditability is not something you add later. It is the reason the whole thing is defensible in front of a customer, a merchant, and a regulator.</p>
+  <p>The line between a helpful assistant and a liability is the escalation rule. A sovereign setup logs every decision, exposes a confidence signal, and hands the conversation to a human the moment it is unsure or the request touches money it should not move on its own. Auditability belongs in the design from the start, because it is what makes the system defensible in front of a shopper, a merchant, and a regulator.</p>
 
   <h2>Where it meets the help desk</h2>
-  <p>Teams looking at this usually already run a SaaS help desk and want to know what a European, self-hosted setup gives up and what it gains. A direct comparison helps more than a manifesto, so here is a <a href="https://bynevolabs.com/alternative-intercom-france/">factual Intercom alternative comparison</a> that lays out the trade. The short version: you exchange a fully managed non-EU stack for control over where data lives and what the assistant is allowed to do on its own.</p>
+  <p>Teams looking at this usually already run a SaaS help desk and want to know what a European, self-hosted setup gives up and what it gains. A direct comparison helps more than a manifesto, so here is a <a href="https://bynevolabs.com/alternative-intercom-france/">factual Intercom alternative comparison</a> that lays out the trade. The short version: you swap a fully managed non-EU stack for control over where data lives and what the assistant is allowed to do on its own.</p>
+  <div class="tbl-wrap">
+    <table>
+      <thead>
+        <tr><th scope="col"></th><th scope="col">Managed SaaS · non-EU</th><th scope="col">Sovereign · EU-hosted</th></tr>
+      </thead>
+      <tbody>
+        <tr><th scope="row">Where data lives</th><td class="saas">Outside the EU</td><td class="sov">Inside the EU (France)</td></tr>
+        <tr><th scope="row">Model</th><td class="saas">Vendor round trip</td><td class="sov">EU model, on your infrastructure</td></tr>
+        <tr><th scope="row">Assistant scope</th><td class="saas">Answers questions</td><td class="sov">Answers and acts, with escalation</td></tr>
+        <tr><th scope="row">Auditability</th><td class="saas">Vendor-defined</td><td class="sov">Every decision logged</td></tr>
+        <tr><th scope="row">Compliance posture</th><td class="saas">Cross-border transfer to manage</td><td class="sov">No transfer question</td></tr>
+      </tbody>
+    </table>
+  </div>
 
   <h2>What to measure</h2>
-  <p>Deflection rate on its own is a vanity number. The metrics that hold up are requests resolved without a human touch, time to first useful action, and the share of escalations a human later agreed were correct. When an assistant escalates well, trust in it compounds, and the automated share can grow without anyone feeling handled by a machine.</p>
+  <p>Deflection rate on its own is a vanity number. The metrics that hold up are the ones tied to a resolved request:</p>
+  <ul class="clean">
+    <li><b>Requests resolved without a human touch</b>, not sessions deflected.</li>
+    <li><b>Time to first useful action</b>, not time to first reply.</li>
+    <li><b>Share of escalations a human later agreed were correct.</b></li>
+  </ul>
+  <p>When an assistant escalates well, trust in it compounds, and the automated share can grow without anyone feeling handled by a machine.</p>
 
   <div class="card">
-    <p>These notes come from the team at <a href="https://bynevolabs.com/">Bynevo Labs</a>, who build <a href="https://bynevolabs.com/ia-souveraine-service-client/">sovereign AI customer service</a> for European e-commerce. They are shared here as engineering notes, not a pitch.</p>
+    <p>These notes come from the team at <a href="https://bynevolabs.com/"><b>Bynevo Labs</b></a>, who build <a href="https://bynevolabs.com/ia-souveraine-service-client/">sovereign AI customer service</a> for European e-commerce. Shared here as engineering notes, not a pitch.</p>
   </div>
 
   <footer>
-    Published as open engineering notes. Hosted on GitHub Pages.
+    Published as open engineering notes. Hosted on GitHub Pages.<br>
+    No third-party fonts, scripts or trackers load on this page.
   </footer>
 </main>
 </body>
