@@ -1,0 +1,62 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 470" font-family="-apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif">
+  <rect x="1" y="1" width="758" height="468" rx="22" fill="#FFFDF9" stroke="#E7DECE" stroke-width="1.5"/>
+
+  <text x="40" y="54" fill="#1C1A2E" font-size="25" font-weight="700">Où voyagent les données du client</text>
+  <text x="40" y="80" fill="#6B6680" font-size="13.5">Un support SaaS hors UE pousse les données hors frontière. Un montage souverain les garde en UE.</text>
+
+  <!-- Lane A : SaaS hors UE -->
+  <text x="40" y="122" fill="#9A94A8" font-size="11" font-weight="600" letter-spacing="1.4" font-family="ui-monospace, Menlo, monospace">SUPPORT SAAS · HORS UE</text>
+  <rect x="32" y="134" width="306" height="88" rx="14" fill="#3E63DD" fill-opacity="0.09" stroke="#3E63DD" stroke-width="1.4" stroke-dasharray="5 4"/>
+  <text x="48" y="154" fill="#3E63DD" font-size="11" font-weight="700" font-family="ui-monospace, Menlo, monospace">UE</text>
+
+  <rect x="52" y="162" width="112" height="48" rx="11" fill="#FFFFFF" stroke="#3E63DD" stroke-width="1.5"/>
+  <text x="108" y="184" text-anchor="middle" fill="#1C1A2E" font-size="13.5" font-weight="600">Client</text>
+  <text x="108" y="200" text-anchor="middle" fill="#6B6680" font-size="10.5" font-family="ui-monospace, Menlo, monospace">dans l'UE</text>
+
+  <rect x="200" y="162" width="118" height="48" rx="11" fill="#FFFFFF" stroke="#3E63DD" stroke-width="1.5"/>
+  <text x="259" y="184" text-anchor="middle" fill="#1C1A2E" font-size="13.5" font-weight="600">Marchand</text>
+  <text x="259" y="200" text-anchor="middle" fill="#6B6680" font-size="10.5" font-family="ui-monospace, Menlo, monospace">boutique · UE</text>
+
+  <rect x="556" y="162" width="156" height="48" rx="11" fill="#FFE1D6" stroke="#E34A2C" stroke-width="1.5"/>
+  <text x="634" y="184" text-anchor="middle" fill="#1C1A2E" font-size="13.5" font-weight="600">Modèle</text>
+  <text x="634" y="200" text-anchor="middle" fill="#8a3a26" font-size="10.5" font-family="ui-monospace, Menlo, monospace">hébergé hors UE</text>
+
+  <!-- frontiere -->
+  <line x1="444" y1="126" x2="444" y2="232" stroke="#E34A2C" stroke-width="1.4" stroke-dasharray="3 4" opacity="0.75"/>
+  <text x="444" y="248" text-anchor="middle" fill="#E34A2C" font-size="10.5" font-family="ui-monospace, Menlo, monospace">frontière UE</text>
+
+  <!-- fleche Client -> Marchand -->
+  <line x1="164" y1="186" x2="192" y2="186" stroke="#3E63DD" stroke-width="2"/>
+  <polygon points="200,186 191,182 191,190" fill="#3E63DD"/>
+  <!-- fleche Marchand -> Modele (traverse) -->
+  <line x1="318" y1="186" x2="548" y2="186" stroke="#E34A2C" stroke-width="2"/>
+  <polygon points="556,186 547,182 547,190" fill="#E34A2C"/>
+  <text x="437" y="177" text-anchor="middle" fill="#E34A2C" font-size="10.5" font-family="ui-monospace, Menlo, monospace">transfert hors UE</text>
+
+  <!-- Lane B : souverain -->
+  <text x="40" y="300" fill="#9A94A8" font-size="11" font-weight="600" letter-spacing="1.4" font-family="ui-monospace, Menlo, monospace">SOUVERAIN · HÉBERGÉ EN UE</text>
+  <rect x="32" y="312" width="696" height="88" rx="14" fill="#3F9E86" fill-opacity="0.10" stroke="#3E63DD" stroke-width="1.4" stroke-dasharray="5 4"/>
+  <text x="48" y="332" fill="#3E63DD" font-size="11" font-weight="700" font-family="ui-monospace, Menlo, monospace">UE · FRANCE</text>
+
+  <rect x="52" y="340" width="112" height="48" rx="11" fill="#FFFFFF" stroke="#3E63DD" stroke-width="1.5"/>
+  <text x="108" y="362" text-anchor="middle" fill="#1C1A2E" font-size="13.5" font-weight="600">Client</text>
+  <text x="108" y="378" text-anchor="middle" fill="#6B6680" font-size="10.5" font-family="ui-monospace, Menlo, monospace">dans l'UE</text>
+
+  <rect x="208" y="340" width="118" height="48" rx="11" fill="#FFFFFF" stroke="#3E63DD" stroke-width="1.5"/>
+  <text x="267" y="362" text-anchor="middle" fill="#1C1A2E" font-size="13.5" font-weight="600">Marchand</text>
+  <text x="267" y="378" text-anchor="middle" fill="#6B6680" font-size="10.5" font-family="ui-monospace, Menlo, monospace">boutique · UE</text>
+
+  <rect x="370" y="340" width="170" height="48" rx="11" fill="#FFFFFF" stroke="#3E63DD" stroke-width="1.5"/>
+  <text x="455" y="362" text-anchor="middle" fill="#1C1A2E" font-size="13.5" font-weight="600">Inférence · FR</text>
+  <text x="455" y="378" text-anchor="middle" fill="#6B6680" font-size="10.5" font-family="ui-monospace, Menlo, monospace">modèle UE (Mistral)</text>
+
+  <line x1="164" y1="364" x2="200" y2="364" stroke="#3E63DD" stroke-width="2"/>
+  <polygon points="208,364 199,360 199,368" fill="#3E63DD"/>
+  <line x1="326" y1="364" x2="362" y2="364" stroke="#3E63DD" stroke-width="2"/>
+  <polygon points="370,364 361,360 361,368" fill="#3E63DD"/>
+
+  <text x="634" y="360" text-anchor="middle" fill="#3F9E86" font-size="11.5" font-weight="600">reste dans l'UE</text>
+  <text x="634" y="376" text-anchor="middle" fill="#3F9E86" font-size="10.5" font-family="ui-monospace, Menlo, monospace">aucun transfert</text>
+
+  <text x="40" y="436" fill="#9A94A8" font-size="11" font-family="ui-monospace, Menlo, monospace">bynevolabs.com · SAV e-commerce, IA souveraine hébergée en France</text>
+</svg>
