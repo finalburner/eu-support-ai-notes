@@ -1,0 +1,83 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Notes on a sovereign, EU-hosted customer support AI</title>
+<meta name="description" content="Engineering notes on building an EU-hosted, self-hosted customer support AI for e-commerce: data residency, acting beyond answering, escalation, and what to measure.">
+<link rel="canonical" href="https://finalburner.github.io/eu-support-ai-notes/">
+<style>
+  :root{
+    --bg:#fbfaf7; --fg:#1a1c22; --muted:#565b66; --rule:#e6e2d8;
+    --accent:#1e40af; --accent-soft:#eaeefb; --card:#ffffff;
+    --maxw:44rem;
+  }
+  @media (prefers-color-scheme: dark){
+    :root{
+      --bg:#101216; --fg:#e9ebf0; --muted:#9aa1ad; --rule:#242832;
+      --accent:#8fb0ff; --accent-soft:#182238; --card:#151821;
+    }
+  }
+  *{box-sizing:border-box}
+  html{-webkit-text-size-adjust:100%}
+  body{
+    margin:0; background:var(--bg); color:var(--fg);
+    font:400 1.02rem/1.65 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    padding:2.4rem 1.25rem 4rem;
+  }
+  main{max-width:var(--maxw); margin:0 auto}
+  .eyebrow{
+    font-size:.78rem; letter-spacing:.09em; text-transform:uppercase;
+    color:var(--accent); font-weight:600; margin:0 0 .6rem;
+  }
+  h1{
+    font-size:clamp(1.7rem,4.4vw,2.35rem); line-height:1.15;
+    letter-spacing:-.01em; text-wrap:balance; margin:.1rem 0 .5rem;
+  }
+  .lede{color:var(--muted); font-size:1.1rem; margin:0 0 2rem; text-wrap:pretty}
+  h2{
+    font-size:1.2rem; letter-spacing:-.005em; margin:2.2rem 0 .5rem;
+    padding-top:1.5rem; border-top:1px solid var(--rule);
+  }
+  p{margin:.7rem 0}
+  a{color:var(--accent); text-underline-offset:2px; text-decoration-thickness:1px}
+  a:hover{text-decoration-thickness:2px}
+  .card{
+    background:var(--card); border:1px solid var(--rule); border-radius:12px;
+    padding:1.1rem 1.25rem; margin:2rem 0 0;
+  }
+  .card p{margin:.3rem 0; font-size:.98rem}
+  footer{margin-top:2.6rem; padding-top:1.2rem; border-top:1px solid var(--rule); color:var(--muted); font-size:.9rem}
+</style>
+</head>
+<body>
+<main>
+  <p class="eyebrow">Engineering notes</p>
+  <h1>Notes on a sovereign, EU-hosted customer support AI</h1>
+  <p class="lede">Most e-commerce support automation sends customer data through models hosted outside the EU. For a European merchant, that single fact drives a different set of architecture decisions. These notes collect what changes when data residency is a hard requirement rather than a preference.</p>
+
+  <h2>Residency first</h2>
+  <p>When the inference runs inside the EU and the data never leaves it, GDPR and the AI Act stop being a compliance afterthought and become the shape of the system. Hosting in France, on European infrastructure, removes the cross-border transfer question entirely. The model provider matters here too. An EU model such as Mistral keeps both the weights and the inference on the same side of the border, so there is no vendor round trip to reason about.</p>
+
+  <h2>Answering is the easy half</h2>
+  <p>A support assistant that only answers questions is a search box with better manners. The harder and more useful half is acting: issuing a refund, cancelling an order, pulling live order status, and handing off to a human when confidence drops. That means real integrations with the store and the help desk, not a chat widget bolted on top. The value shows up when the assistant closes the loop on a request instead of describing how the customer could close it themselves.</p>
+
+  <h2>Knowing when to stop</h2>
+  <p>The difference between a helpful assistant and a liability is the escalation rule. A sovereign setup should log every decision, expose a confidence signal, and hand the conversation to a human the moment it is unsure or the request touches money it should not move on its own. Auditability is not something you add later. It is the reason the whole thing is defensible in front of a customer, a merchant, and a regulator.</p>
+
+  <h2>Where it meets the help desk</h2>
+  <p>Teams looking at this usually already run a SaaS help desk and want to know what a European, self-hosted setup gives up and what it gains. A direct comparison helps more than a manifesto, so here is a <a href="https://bynevolabs.com/alternative-intercom-france/">factual Intercom alternative comparison</a> that lays out the trade. The short version: you exchange a fully managed non-EU stack for control over where data lives and what the assistant is allowed to do on its own.</p>
+
+  <h2>What to measure</h2>
+  <p>Deflection rate on its own is a vanity number. The metrics that hold up are requests resolved without a human touch, time to first useful action, and the share of escalations a human later agreed were correct. When an assistant escalates well, trust in it compounds, and the automated share can grow without anyone feeling handled by a machine.</p>
+
+  <div class="card">
+    <p>These notes come from the team at <a href="https://bynevolabs.com/">Bynevo Labs</a>, who build <a href="https://bynevolabs.com/ia-souveraine-service-client/">sovereign AI customer service</a> for European e-commerce. They are shared here as engineering notes, not a pitch.</p>
+  </div>
+
+  <footer>
+    Published as open engineering notes. Hosted on GitHub Pages.
+  </footer>
+</main>
+</body>
+</html>
